@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Zsolti Galaktikus Szülinapja</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: url('https://i.imgur.com/6TzA8Yk.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #message {
+      position: absolute;
+      top: 30%;
+      width: 100%;
+      text-align: center;
+      font-size: 3em;
+      color: yellow;
+      text-shadow: 2px 2px 8px black;
+      display: none;
+    }
+
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="message">🎂 Boldog Szülinapot, Zsolti! 🎉</div>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <audio id="victoryMusic" src="https://www.bensound.com/bensound-music/bensound-funkyelement.mp3" preload="auto"></audio>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const zsolti = {
+      x: 50,
+      y: 300,
+      width: 40,
+      height: 60,
+      color: "yellow",
+      vy: 0,
+      jumping: false
+    };
+
+    const cake = {
+      x: 700,
+      y: 320,
+      width: 50,
+      height: 50
+    };
+
+    const enemies = [
+      { x: 300, y: 320, width: 40, height: 40, vx: -1 },
+      { x: 500, y: 320, width: 40, height: 40, vx: -1.2 }
+    ];
+
+    const gravity = 0.5;
+    const ground = 360;
+    let gameOver = false;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !zsolti.jumping) {
+        zsolti.vy = -10;
+        zsolti.jumping = true;
+      }
+    });
+
+    function drawZsolti() {
+      ctx.fillStyle = zsolti.color;
+      ctx.fillRect(zsolti.x, zsolti.y, zsolti.width, zsolti.height);
+    }
+
+    function drawCake() {
+      ctx.fillStyle = "pink";
+      ctx.fillRect(cake.x, cake.y, cake.width, cake.height);
+    }
+
+    function drawEnemies() {
+      ctx.fillStyle = "red";
+      enemies.forEach(enemy => {
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+      });
+    }
+
+    function updateEnemies() {
+      enemies.forEach(enemy => {
+        enemy.x += enemy.vx;
+        if (enemy.x + enemy.width < 0) enemy.x = canvas.width;
+      });
+    }
+
+    function checkCollision(a, b) {
+      return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+      );
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (gameOver) return;
+
+      zsolti.y += zsolti.vy;
+      zsolti.vy += gravity;
+
+      if (zsolti.y >= ground) {
+        zsolti.y = ground;
+        zsolti.vy = 0;
+        zsolti.jumping = false;
+      }
+
+      drawZsolti();
+      drawCake();
+      drawEnemies();
+      updateEnemies();
+
+      for (let enemy of enemies) {
+        if (checkCollision(zsolti, enemy)) {
+          alert("Game Over! Újra?");
+          location.reload();
+        }
+      }
+
+      if (checkCollision(zsolti, cake)) {
+        gameOver = true;
+        document.getElementById("message").style.display = "block";
+        document.getElementById("victoryMusic").play();
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    update();
+  </script>
+</body>
+</html>
